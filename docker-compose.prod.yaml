@@ -1,6 +1,5 @@
 x-common-service-build: &common-service-build
   context: skillpath-backend
-  dockerfile: Dockerfile
   target: runner
 
 services:
@@ -21,7 +20,7 @@ services:
     restart: always
     shm_size: 128mb
     env_file:
-      - .env.development.local
+      - .env.production.local
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -35,6 +34,12 @@ services:
       - redisdata:/data
 
   bff:
+    healthcheck:
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 60s
     build:
       <<: *common-service-build
       args:
@@ -46,6 +51,9 @@ services:
       - skillpath-backend/apps/bff/.env.production.local
 
   frontend:
+    depends_on:
+      bff:
+        condition: service_healthy
     build:
       context: skillpath-frontend
       dockerfile: Dockerfile

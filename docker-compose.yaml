@@ -68,6 +68,12 @@ services:
       - redisinsight-data:/db
 
   bff:
+    healthcheck:
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
     build:
       <<: *common-service-build
       args:
@@ -82,6 +88,9 @@ services:
       - /usr/src/app/node_modules
 
   frontend:
+    depends_on:
+      bff:
+        condition: service_healthy
     build:
       context: skillpath-frontend
       dockerfile: Dockerfile
