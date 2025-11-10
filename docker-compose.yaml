@@ -1,0 +1,103 @@
+x-common-service-build: &common-service-build
+  context: ./skillpath-backend
+  target: dev
+
+services:
+  proxy:
+    image: nginx:1.29-alpine
+    hostname: proxy
+    container_name: proxy
+    restart: always
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx:/etc/nginx:ro
+
+  database:
+    image: postgres:18-alpine
+    hostname: database
+    container_name: database
+    restart: always
+    shm_size: 128mb
+    env_file:
+      - .env.development.local
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    depends_on:
+      database:
+        condition: service_started
+    image: dpage/pgadmin4
+    hostname: pgadmin
+    container_name: pgadmin
+    restart: always
+    env_file:
+      - .env.development.local
+    ports:
+      - '5050:5050'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+  redis:
+    image: redis:8-alpine
+    hostname: redis
+    container_name: redis
+    restart: always
+    shm_size: 128mb
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisdata:/data
+
+  redisinsight:
+    depends_on:
+      redis:
+        condition: service_started
+    image: redis/redisinsight
+    hostname: redisinsight
+    container_name: redisinsight
+    restart: always
+    env_file:
+      - .env.development.local
+    ports:
+      - '5540:5540'
+    volumes:
+      - redisinsight-data:/db
+
+  bff:
+    build:
+      <<: *common-service-build
+      args:
+        SERVICE_NAME: bff
+        HTTP_PORT: 3001
+    hostname: bff
+    container_name: bff_service
+    env_file:
+      - skillpath-backend/apps/bff/.env.development.local
+    volumes:
+      - ./skillpath-backend:/usr/src/app:cached
+      - /usr/src/app/node_modules
+
+  frontend:
+    build:
+      context: skillpath-frontend
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        HTTP_PORT: 3000
+    hostname: frontend
+    container_name: frontend
+    env_file:
+      - skillpath-frontend/.env.development.local
+    volumes:
+      - ./skillpath-frontend:/usr/src/app:cached
+      - /usr/src/app/node_modules
+
+volumes:
+  pgdata:
+  redisdata:
+  pgadmin-data:
+  redisinsight-data:

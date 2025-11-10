@@ -1,0 +1,6 @@
+[submodule "skillpath-frontend"]
+	path = skillpath-frontend
+	url = https://github.com/fc1g/skillpath-frontend.git
+[submodule "skillpath-backend"]
+	path = skillpath-backend
+	url = https://github.com/fc1g/skillpath-backend.git

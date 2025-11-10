@@ -1,0 +1,62 @@
+x-common-service-build: &common-service-build
+  context: skillpath-backend
+  dockerfile: Dockerfile
+  target: runner
+
+services:
+  proxy:
+    image: nginx:1.29-alpine
+    hostname: proxy
+    container_name: proxy
+    restart: always
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx:/etc/nginx:ro
+
+  database:
+    image: postgres:18-alpine
+    hostname: database
+    container_name: database
+    restart: always
+    shm_size: 128mb
+    env_file:
+      - .env.development.local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8-alpine
+    hostname: redis
+    container_name: redis
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - redisdata:/data
+
+  bff:
+    build:
+      <<: *common-service-build
+      args:
+        SERVICE_NAME: bff
+        HTTP_PORT: 3001
+    hostname: bff
+    container_name: bff_service
+    env_file:
+      - skillpath-backend/apps/bff/.env.production.local
+
+  frontend:
+    build:
+      context: skillpath-frontend
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        HTTP_PORT: 3000
+    hostname: frontend
+    container_name: frontend
+    env_file:
+      - skillpath-frontend/.env.production.local
+
+volumes:
+  pgdata:
+  redisdata:
