@@ -68,6 +68,9 @@ services:
       - redisinsight-data:/db
 
   bff:
+    depends_on:
+      auth:
+        condition: service_healthy
     healthcheck:
       test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
       interval: 15s
@@ -83,6 +86,31 @@ services:
     container_name: bff_service
     env_file:
       - skillpath-backend/apps/bff/.env.development.local
+    volumes:
+      - ./skillpath-backend:/usr/src/app:cached
+      - /usr/src/app/node_modules
+
+  auth:
+    depends_on:
+      database:
+        condition: service_started
+      redis:
+        condition: service_started
+    healthcheck:
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3002/health/ready' ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    build:
+      <<: *common-service-build
+      args:
+        SERVICE_NAME: auth
+        HTTP_PORT: 3002
+    hostname: auth_service
+    container_name: auth_service
+    env_file:
+      - skillpath-backend/apps/auth/.env.development.local
     volumes:
       - ./skillpath-backend:/usr/src/app:cached
       - /usr/src/app/node_modules

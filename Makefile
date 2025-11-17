@@ -27,6 +27,20 @@ logs:
 build:
 	COMPOSE_BAKE=true docker compose build
 
+# Test
+e2e:
+	COMPOSE_BAKE=true docker compose -f docker-compose.test.yaml up --build
+
+down-e2e:
+	docker compose -f docker-compose.test.yaml down
+
+restart-e2e:
+	$(MAKE) down-volumes
+	$(MAKE) e2e
+
+logs-e2e:
+	docker compose -f docker-compose.test.yaml logs -f --tail=50
+
 # Production
 prod:
 	COMPOSE_BAKE=true docker compose -f docker-compose.prod.yaml up --build -d
