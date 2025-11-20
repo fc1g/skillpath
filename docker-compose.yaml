@@ -26,21 +26,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  pgadmin:
-    depends_on:
-      database:
-        condition: service_started
-    image: dpage/pgadmin4
-    hostname: pgadmin
-    container_name: pgadmin
-    restart: always
-    env_file:
-      - .env.development.local
-    ports:
-      - '5050:5050'
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-
   redis:
     image: redis:8-alpine
     hostname: redis
@@ -52,24 +37,11 @@ services:
     volumes:
       - redisdata:/data
 
-  redisinsight:
-    depends_on:
-      redis:
-        condition: service_started
-    image: redis/redisinsight
-    hostname: redisinsight
-    container_name: redisinsight
-    restart: always
-    env_file:
-      - .env.development.local
-    ports:
-      - '5540:5540'
-    volumes:
-      - redisinsight-data:/db
-
   bff:
     depends_on:
       auth:
+        condition: service_healthy
+      courses:
         condition: service_healthy
     healthcheck:
       test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
@@ -115,6 +87,29 @@ services:
       - ./skillpath-backend:/usr/src/app:cached
       - /usr/src/app/node_modules
 
+  courses:
+    depends_on:
+      database:
+        condition: service_started
+    healthcheck:
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3003/health/ready' ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    build:
+      <<: *common-service-build
+      args:
+        SERVICE_NAME: courses
+        HTTP_PORT: 3003
+    hostname: courses_service
+    container_name: courses_service
+    env_file:
+      - skillpath-backend/apps/courses/.env.development.local
+    volumes:
+      - ./skillpath-backend:/usr/src/app:cached
+      - /usr/src/app/node_modules
+
   frontend:
     depends_on:
       bff:
@@ -136,5 +131,3 @@ services:
 volumes:
   pgdata:
   redisdata:
-  pgadmin-data:
-  redisinsight-data:

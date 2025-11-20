@@ -66,12 +66,6 @@ shell-db:
 shell-redis:
 	docker exec -it redis redis-cli
 
-pgadmin:
-	open http://localhost:5050
-
-redisinsight:
-	open http://localhost:5540
-
 # Status
 status:
 	docker compose ps

@@ -3,16 +3,6 @@ x-common-service-build: &common-service-build
   target: runner
 
 services:
-  proxy:
-    image: nginx:1.29-alpine
-    hostname: proxy
-    container_name: proxy
-    restart: always
-    ports:
-      - '80:80'
-    volumes:
-      - ./nginx:/etc/nginx:ro
-
   database:
     image: postgres:18-alpine
     hostname: database
@@ -36,6 +26,8 @@ services:
   bff:
     depends_on:
       auth:
+        condition: service_healthy
+      courses:
         condition: service_healthy
     healthcheck:
       test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
@@ -72,6 +64,26 @@ services:
         HTTP_PORT: 3002
     hostname: auth_service
     container_name: auth_service
+    env_file:
+      - skillpath-backend/apps/auth/.env.production.local
+
+  courses:
+    depends_on:
+      database:
+        condition: service_started
+    healthcheck:
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3003/health/ready' ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 60s
+    build:
+      <<: *common-service-build
+      args:
+        SERVICE_NAME: courses
+        HTTP_PORT: 3003
+    hostname: courses_service
+    container_name: courses_service
     env_file:
       - skillpath-backend/apps/auth/.env.production.local
 
