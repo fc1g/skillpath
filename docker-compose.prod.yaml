@@ -11,6 +11,8 @@ services:
     shm_size: 128mb
     env_file:
       - .env.production.local
+    ports:
+      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -25,8 +27,6 @@ services:
 
   bff:
     depends_on:
-      auth:
-        condition: service_healthy
       courses:
         condition: service_healthy
     healthcheck:
@@ -44,6 +44,8 @@ services:
     container_name: bff_service
     env_file:
       - skillpath-backend/apps/bff/.env.production.local
+    ports:
+      - '3001:3001'
 
   auth:
     depends_on:
@@ -62,15 +64,18 @@ services:
       args:
         SERVICE_NAME: auth
         HTTP_PORT: 3002
+    command: sh -c "pnpm migrations:run && node dist/apps/auth/main.js"
     hostname: auth_service
     container_name: auth_service
     env_file:
       - skillpath-backend/apps/auth/.env.production.local
+    ports:
+      - '3002:3002'
 
   courses:
     depends_on:
-      database:
-        condition: service_started
+      auth:
+        condition: service_healthy
     healthcheck:
       test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3003/health/ready' ]
       interval: 30s
@@ -85,7 +90,9 @@ services:
     hostname: courses_service
     container_name: courses_service
     env_file:
-      - skillpath-backend/apps/auth/.env.production.local
+      - skillpath-backend/apps/courses/.env.production.local
+    ports:
+      - '3003:3003'
 
   frontend:
     depends_on:
@@ -101,6 +108,8 @@ services:
     container_name: frontend
     env_file:
       - skillpath-frontend/.env.production.local
+    ports:
+      - '3000:3000'
 
 volumes:
   pgdata:
