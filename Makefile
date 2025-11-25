@@ -1,7 +1,7 @@
 .SILENT:
 .PHONY: initialize dev down down-volumes restart logs build \
-  prod down-prod restart-prod logs-prod \
-  open shell-db shell-redis pgadmin redisinsight status
+  prod-api prod-client down-prod logs-prod open \
+  open-prod shell-db shell-redis status
 
 initialize:
 	cd skillpath-frontend && pnpm i
@@ -42,15 +42,14 @@ logs-e2e:
 	docker compose -f docker-compose.test.yaml logs -f --tail=50
 
 # Production
-prod:
-	COMPOSE_BAKE=true docker compose -f docker-compose.prod.yaml up --build -d
+prod-api:
+	COMPOSE_BAKE=true docker compose -f docker-compose.prod.yaml up bff --build -d
+
+prod-client:
+	COMPOSE_BAKE=true docker compose -f docker-compose.prod.yaml up frontend --build -d
 
 down-prod:
 	docker compose -f docker-compose.prod.yaml down
-
-restart-prod:
-	$(MAKE) down-prod
-	$(MAKE) prod
 
 logs-prod:
 	docker compose -f docker-compose.prod.yaml logs -f --tail=50
@@ -58,6 +57,9 @@ logs-prod:
 # App
 open:
 	open http://localhost
+
+open-prod:
+	open https://fc1g-lab.dev
 
 # Database / UI
 shell-db:
