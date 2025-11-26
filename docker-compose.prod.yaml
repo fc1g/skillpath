@@ -108,6 +108,7 @@ services:
         HTTP_PORT: 3000
         INTERNAL_API_URL: https://fc1g-lab.dev/api/v1
         NEXT_PUBLIC_SITE_URL: https://fc1g-lab.dev
+        NEXT_PUBLIC_API_URL: https://fc1g-lab.dev/api/v1
     hostname: frontend
     container_name: frontend
     env_file:
