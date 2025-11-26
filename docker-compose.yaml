@@ -4,6 +4,8 @@ x-common-service-build: &common-service-build
 
 services:
   proxy:
+    depends_on:
+      - frontend
     image: nginx:1.29-alpine
     hostname: proxy
     container_name: proxy
