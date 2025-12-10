@@ -68,7 +68,7 @@ services:
       database:
         condition: service_started
     healthcheck:
-      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3003/health/ready' ]
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:3004/health/ready']
       interval: 5s
       timeout: 3s
       retries: 20
@@ -77,7 +77,7 @@ services:
       <<: *common-service-build
       args:
         SERVICE_NAME: courses
-        HTTP_PORT: 3003
+        HTTP_PORT: 3004
     hostname: courses_service
     container_name: test_courses_service
     env_file:

@@ -79,7 +79,7 @@ services:
       auth:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3003/health/ready"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:3004/health/ready"]
       interval: 30s
       timeout: 2s
       retries: 5
@@ -88,13 +88,13 @@ services:
       <<: *common-service-build
       args:
         SERVICE_NAME: courses
-        HTTP_PORT: 3003
+        HTTP_PORT: 3004
     hostname: courses_service
     container_name: courses_service
     env_file:
       - skillpath-backend/apps/courses/.env.production.local
     ports:
-      - "3003:3003"
+      - "3004:3004"
 
   frontend:
     depends_on:
