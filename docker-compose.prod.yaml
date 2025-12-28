@@ -47,6 +47,8 @@ services:
     depends_on:
       courses:
         condition: service_healthy
+      notifications:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "http://localhost:3001/health/live" ]
       interval: 30s
@@ -116,6 +118,12 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3005/health/live" ]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 60s
     build:
       <<: *common-service-build
       args:
@@ -125,6 +133,8 @@ services:
     container_name: notifications_service
     env_file:
       - skillpath-backend/apps/notifications/.env.production.local
+    ports:
+      - "3005:3005"
 
   frontend:
     depends_on:
