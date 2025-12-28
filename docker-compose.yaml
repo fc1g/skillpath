@@ -15,6 +15,25 @@ services:
     volumes:
       - ./nginx:/etc/nginx:ro
 
+  rabbitmq:
+    image: rabbitmq:4.2.2-management-alpine
+    hostname: rabbitmq
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    env_file:
+      - .env.development.local
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+
   database:
     image: postgres:18-alpine
     hostname: database
@@ -94,7 +113,7 @@ services:
       database:
         condition: service_started
     healthcheck:
-      test: ['CMD', 'curl', '-fsS', 'http://localhost:3004/health/ready']
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3004/health/ready' ]
       interval: 15s
       timeout: 3s
       retries: 3
@@ -108,6 +127,29 @@ services:
     container_name: courses_service
     env_file:
       - skillpath-backend/apps/courses/.env.development.local
+    volumes:
+      - ./skillpath-backend:/usr/src/app:cached
+      - /usr/src/app/node_modules
+
+  notifications:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3005/health/live' ]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    build:
+      <<: *common-service-build
+      args:
+        SERVICE_NAME: notifications
+        HTTP_PORT: 3005
+    hostname: notifications_service
+    container_name: notifications_service
+    env_file:
+      - skillpath-backend/apps/notifications/.env.development.local
     volumes:
       - ./skillpath-backend:/usr/src/app:cached
       - /usr/src/app/node_modules
@@ -133,3 +175,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  rabbitmqdata:

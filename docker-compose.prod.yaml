@@ -3,6 +3,26 @@ x-common-service-build: &common-service-build
   target: runner
 
 services:
+  rabbitmq:
+    image: rabbitmq:4.2.2-management-alpine
+    hostname: rabbitmq
+    container_name: rabbitmq
+    restart: unless-stopped
+    env_file:
+      - .env.production.local
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+
   database:
     image: postgres:18-alpine
     hostname: database
@@ -11,8 +31,6 @@ services:
     shm_size: 128mb
     env_file:
       - .env.production.local
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -22,8 +40,6 @@ services:
     container_name: redis
     restart: always
     shm_size: 128mb
-    ports:
-      - "6379:6379"
     volumes:
       - redisdata:/data
 
@@ -32,7 +48,7 @@ services:
       courses:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3001/health/live"]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3001/health/live" ]
       interval: 30s
       timeout: 2s
       retries: 5
@@ -56,7 +72,7 @@ services:
       redis:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3002/health/ready"]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3002/health/ready" ]
       interval: 30s
       timeout: 2s
       retries: 5
@@ -79,7 +95,7 @@ services:
       auth:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3004/health/ready"]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3004/health/ready" ]
       interval: 30s
       timeout: 2s
       retries: 5
