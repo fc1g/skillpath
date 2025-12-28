@@ -64,6 +64,8 @@ services:
         condition: service_healthy
       courses:
         condition: service_healthy
+      notifications:
+        condition: service_healthy
     healthcheck:
       test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
       interval: 15s
