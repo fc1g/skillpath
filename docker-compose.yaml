@@ -11,7 +11,7 @@ services:
     container_name: proxy
     restart: always
     ports:
-      - '80:80'
+      - "80:80"
     volumes:
       - ./nginx:/etc/nginx:ro
 
@@ -21,8 +21,8 @@ services:
     container_name: rabbitmq
     restart: unless-stopped
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - "5672:5672"
+      - "15672:15672"
     env_file:
       - .env.development.local
     healthcheck:
@@ -43,7 +43,7 @@ services:
     env_file:
       - .env.development.local
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -54,7 +54,7 @@ services:
     restart: always
     shm_size: 128mb
     ports:
-      - '6379:6379'
+      - "6379:6379"
     volumes:
       - redisdata:/data
 
@@ -64,10 +64,8 @@ services:
         condition: service_healthy
       courses:
         condition: service_healthy
-      notifications:
-        condition: service_healthy
     healthcheck:
-      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3001/health/live' ]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3001/health/live" ]
       interval: 15s
       timeout: 3s
       retries: 3
@@ -92,7 +90,7 @@ services:
       redis:
         condition: service_started
     healthcheck:
-      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3002/health/ready' ]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3002/health/ready" ]
       interval: 15s
       timeout: 3s
       retries: 3
@@ -115,7 +113,7 @@ services:
       database:
         condition: service_started
     healthcheck:
-      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3004/health/ready' ]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:3004/health/ready" ]
       interval: 15s
       timeout: 3s
       retries: 3
@@ -137,12 +135,6 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    healthcheck:
-      test: [ 'CMD', 'curl', '-fsS', 'http://localhost:3005/health/live' ]
-      interval: 15s
-      timeout: 3s
-      retries: 3
-      start_period: 30s
     build:
       <<: *common-service-build
       args:
